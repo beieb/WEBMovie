@@ -1,9 +1,11 @@
 import os
-from flask import Flask, render_template
+from flask import Flask, redirect, render_template, session, request
 from pymongo import MongoClient
 from tmdbv3api import TMDb, Movie
 from neo4j import GraphDatabase
 import requests
+
+
 
 
 # =============================
@@ -47,7 +49,7 @@ class Neo4jConnection:
 # =============================
 #       CONFIGURATION
 # =============================
-db_uri = os.getenv("NEO4J_URI", "neo4j://127.0.0.1:7687")
+db_uri = os.getenv("NEO4J_URI", "bolt://127.0.0.1:7687")
 db_user = os.getenv("NEO4J_USER", "neo4j")
 db_password = os.getenv("NEO4J_PASSWORD", "neo4j_password")
 
@@ -72,11 +74,12 @@ db = client["movie"]
 @app.route("/main")
 def main():
     best_movies = list(
-        db.movie
+        db.movies_metadata
           .find({"vote_average": {"$gt": 8}})
           .sort("vote_count", -1)
-          .limit(5)
+          .limit(12)
     )
+
 
     for film in best_movies:
         imdb_id = film.get("imdb_id")
@@ -113,6 +116,11 @@ def login():
 
     return render_template("login.html")
 
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect("/main")
+
 @app.route("/neo4j/user")
 def neo4j_user():
     cypher = """
@@ -129,7 +137,18 @@ def neo4j_user():
 
     return {"movies": results}
 
+@app.route("/rate_movie", methods=["POST"])
+def rate_movie():
+    movie_id = request.form.get("movie_id")
+    rating = request.form.get("rating")
+    user_id = session.get("user_id")
 
+    db.ratings.insert_one({
+        "user_id": user_id,
+        "movie_id": movie_id,
+        "rating": float(rating)
+    })
+    return {"status": "success"}, 200
 
 # =============================
 #        LAUNCH APP
