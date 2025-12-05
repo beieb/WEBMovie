@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Liste des films</title>
+      <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  </head>
+
+<body>
+
+    <div class="login-container">
+        <form class="login-box" method="POST" action="/login">
+            <h1>Connexion</h1>
+
+            <div class="input-group">
+                <label for="pseudo">Pseudo :</label>
+                <input id="pseudo" name="pseudo" placeholder="Votre Pseudo" required>
+            </div>
+
+            <div class="input-group">
+                <label for="password">Mot de passe :</label>
+                <input type="password" id="password" name="password" placeholder="Votre mot de passe" required>
+            </div>
+
+            <button type="submit" class="btn">Se connecter</button>
+
+            <p class="register">
+                Pas encore inscrit ? <a href="/register">Créer un compte</a>
+            </p>
+        </form>
+    </div>
+
+</body>
+</html>

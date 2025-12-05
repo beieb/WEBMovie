@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Liste des films</title>
+      <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  </head>
+
+  <body>
+        <div class="header">
+            <button class="bouton_connection" onclick="location.href = 'http://127.0.0.1:5000/login'">Se connecter</button>
+            <h1>Films</h1>
+        </div>
+
+        <div class="films-container">
+            {% for movie in best_movies %}
+            <div class="film-card">
+                <img src="{{ movie.full_poster_url }}" alt="{{ movie.title }}">
+                <h2>{{ movie.title }}</h2>
+            </div>
+            {% endfor %}
+        </div>
+  </body>
+</html>

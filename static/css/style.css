@@ -1,0 +1,68 @@
+/* ---- GLOBAL ---- */
+body {
+    font-family: Arial, sans-serif;
+    background: #fafafa;
+    padding: 20px;
+    margin: 0;
+    text-align: center;
+}
+
+.bouton_connection {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 25px;
+    background: #007BFF;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+    transition: 0.3s ease;
+}
+
+.bouton_connection:hover {
+    background: #0056d4;
+}
+
+/* ---- TITRES ---- */
+h1 {
+    margin-bottom: 30px;
+    font-size: 32px;
+    color: #333;
+}
+
+/* ---- CONTAINER DES FILMS ---- */
+.films-container {
+    display: flex;
+    justify-content: center;
+    gap: 25px;
+    flex-wrap: wrap;
+    max-width: 1200px;
+    margin: auto;
+}
+
+/* ---- CARTE FILM ---- */
+.film-card {
+    width: 220px;
+    background: white;
+    border-radius: 12px;
+    padding: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.film-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+.film-card img {
+    width: 100%;
+    height: 320px;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
+.film-card h2 {
+    font-size: 18px;
+    margin-top: 10px;
+    color: #222;
+}
