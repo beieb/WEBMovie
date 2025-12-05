@@ -7,7 +7,8 @@ body {
     text-align: center;
 }
 
-.bouton_connection {
+.bouton_connection,
+.bouton_deconnection {
     padding: 10px 20px;
     border: none;
     border-radius: 25px;
@@ -18,7 +19,8 @@ body {
     transition: 0.3s ease;
 }
 
-.bouton_connection:hover {
+.bouton_connection:hover,
+.bouton_deconnection:hover {
     background: #0056d4;
 }
 
@@ -29,40 +31,73 @@ h1 {
     color: #333;
 }
 
-/* ---- CONTAINER DES FILMS ---- */
+/* ===== FILMS GRID ===== */
 .films-container {
-    display: flex;
-    justify-content: center;
-    gap: 25px;
-    flex-wrap: wrap;
-    max-width: 1200px;
-    margin: auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 20px;
+    padding: 20px;
 }
 
-/* ---- CARTE FILM ---- */
-.film-card {
-    width: 220px;
-    background: white;
-    border-radius: 12px;
-    padding: 12px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.film-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
-}
-
-.film-card img {
+/* ===== FILM CARD ===== */
+.film-item {
+    position: relative;
     width: 100%;
-    height: 320px;
-    object-fit: cover;
+    height: 330px;
+    overflow: hidden;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+/* ===== IMAGE ===== */
+.film-image-container {
+    position: relative;
+    width: 100%;
+    height: 240px;
+    overflow: hidden;
     border-radius: 8px;
 }
 
-.film-card h2 {
-    font-size: 18px;
-    margin-top: 10px;
-    color: #222;
+.film-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.4s ease-in-out;
+}
+
+/* Zoom au survol */
+.film-item:hover .film-image img {
+    transform: scale(1.1);
+}
+
+/* ===== OVERLAY ===== */
+.film-overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    
+    width: 100%;
+    height: 100%;
+
+    background: rgba(0, 0, 0, 0.75);
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center; 
+    align-items: center;      
+
+    text-align: center;
+
+    color: white;
+    padding: 20px;
+    border-radius: 10px;
+
+    opacity: 0;
+    transition: opacity 0.4s ease-in-out;
+}
+
+/* Affichage du popup au survol */
+.film-item:hover .film-overlay {
+    opacity: 1;
 }
