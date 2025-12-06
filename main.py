@@ -1,5 +1,6 @@
+import ast
 import os
-from flask import Flask, redirect, render_template, session, request
+from flask import Flask, json, redirect, render_template, session, request
 from pymongo import MongoClient
 from tmdbv3api import TMDb, Movie
 from neo4j import GraphDatabase
@@ -149,6 +150,39 @@ def rate_movie():
         "rating": float(rating)
     })
     return {"status": "success"}, 200
+
+@app.route("/movie/<imdb_id>")
+def movie_details(imdb_id):
+    film = db.movies_metadata.find_one({"imdb_id": imdb_id})
+    if not film:
+        return "Film non trouvé", 404
+    
+    raw = film.get("genres")
+    if isinstance(raw, str):
+        try:
+            parsed = ast.literal_eval(raw)
+            film["genres"] = [g["name"] for g in parsed]
+        except:
+            film["genres"] = []
+    else:
+        film["genres"] = []
+
+
+    url = (
+        f"https://api.themoviedb.org/3/find/{imdb_id}"
+        f"?api_key={tmdb.api_key}&external_source=imdb_id"
+    )
+    r = requests.get(url)
+    data = r.json()
+
+    if data.get("movie_results"):
+        poster = data["movie_results"][0].get("poster_path")
+        if poster:
+            film["full_poster_url"] = f"https://image.tmdb.org/t/p/w500{poster}"
+
+    #details = film.details(imbd_id)
+#    return render_template("movie_details.html", film=film, details=details)
+    return render_template("movie_details.html", film=film)
 
 # =============================
 #        LAUNCH APP
