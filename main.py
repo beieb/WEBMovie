@@ -74,6 +74,7 @@ db = client["movie"]
 # =============================
 #           ROUTES
 # =============================
+#TODO: Change route of home page to just / or redirect / to /main
 @app.route("/main")
 def main():
     best_movies = list(
