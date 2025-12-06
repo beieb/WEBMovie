@@ -5,7 +5,9 @@ from pymongo import MongoClient
 from tmdbv3api import TMDb, Movie
 from neo4j import GraphDatabase
 import requests
+from dotenv import load_dotenv
 
+load_dotenv()  # load .env
 
 
 
@@ -144,6 +146,7 @@ def rate_movie():
     rating = request.form.get("rating")
     user_id = session.get("user_id")
 
+    #TODO: Change to create (replace if exists) rating in NEO4J db instead MongoDB
     db.ratings.insert_one({
         "user_id": user_id,
         "movie_id": movie_id,
