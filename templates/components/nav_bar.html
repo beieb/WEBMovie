@@ -1,0 +1,119 @@
+<div class="navbar">
+
+    <!-- Gauche : Logo + Titre -->
+    <div class="nav-left">
+        <img src="{{ url_for('static', filename='img/image-univ.png') }}" class="nav-logo" alt="logo">
+        <h2 class="nav-title">Movie</h2>
+    </div>
+
+    <!-- Centre : Recherche -->
+    <div class="nav-search">
+        <form action="/search" method="GET">
+            <input type="text" name="q" placeholder="Rechercher un film..." required>
+            <button type="submit">search</button>
+        </form>
+    </div>
+
+    <!-- Droite : User / connexion -->
+    <div class="nav-right">
+
+        {% if session.get('user') %}
+            <span class="nav-user">Bonjour {{ session.get('user')['username'] }}</span>
+            <button onclick="location.href='/profile'">Profil</button>
+            <button onclick="location.href='/logout'">Logout</button>
+        {% else %}
+            <button onclick="location.href='/login'">Sign In</button>
+            <button onclick="location.href='/register'">Sign Up</button>
+        {% endif %}
+
+        <button onclick="location.href='/suggestions'">Suggestions</button>
+
+    </div>
+</div>
+<style>/* ===== NAVBAR ===== */
+.navbar {
+    width: 100%;
+    height: 65px;
+    background: blue;
+    color: white;
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    padding: 0 20px;
+    box-sizing: border-box;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+/* Logo + Titre */
+.nav-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.nav-logo {
+    height: 40px;
+    width: 40px;
+    object-fit: contain;
+}
+
+.nav-title {
+    font-size: 22px;
+}
+
+/* Recherche */
+.nav-search {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+}
+
+.nav-search input {
+    width: 300px;
+    padding: 8px 12px;
+    border-radius: 6px 0 0 6px;
+    border: none;
+    outline: none;
+}
+
+.nav-search button {
+    padding: 8px 12px;
+    border: none;
+    background: #007BFF;
+    color: white;
+    border-radius: 0 6px 6px 0;
+    cursor: pointer;
+}
+
+.nav-search button:hover {
+    background: #0056d4;
+}
+
+/* Partie droite */
+.nav-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.nav-right button {
+    padding: 7px 14px;
+    border-radius: 6px;
+    border: none;
+    background: #007BFF;
+    color: white;
+    cursor: pointer;
+}
+
+.nav-right button:hover {
+    background: #0056d4;
+}
+
+.nav-user {
+    margin-right: 10px;
+}
+</style>

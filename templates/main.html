@@ -8,12 +8,7 @@
   </head>
 
   <body>
-        <div class="header">
-            
-            <button class="bouton_connection" onclick="location.href = 'http://127.0.0.1:5000/login'">Se connecter</button>
-            <button class="bouton_deconnection" onclick="location.href = 'http://127.0.0.1:5000/logout'">Se déconnecter</button>
-            <h1>Films</h1>
-        </div>
+        {% include 'components/nav_bar.html' %}
 
         <div class="films-container">
             {% for movie in best_movies %}

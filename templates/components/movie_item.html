@@ -1,15 +1,16 @@
 <div class="film-item">
+    <a href="/movie/{{ film.imdb_id }}">
 
-    <div class="film-image">
-        <img src="{{ film.full_poster_url or '/static/img/no_poster.png' }}" 
-             alt="{{ film.title }}">
-    </div>
-
-    <div class="film-overlay">
+        <div class="film-image">
+            <img src="{{ film.full_poster_url or '/static/img/no_poster.png' }}" 
+                alt="{{ film.title }}">
+        </div>
+    </a>
+    <div class="film-overlay" onclick="event.stopPropagation()">
         <h3>{{ film.title }}</h3>
         <p>Note : {{ film.vote_average }}/10</p>
 
-        <form method="POST" action="/rate_movie">
+        <form method="POST" action="/rate_movie" class="overlay-form" onsubmit="event.stopPropagation()">
             <input type="hidden" name="movie_id" value="{{ film.imdb_id }}">
 
             <label>Votre note :</label>
