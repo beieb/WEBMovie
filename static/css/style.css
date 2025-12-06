@@ -125,3 +125,9 @@ h1 {
     pointer-events: auto !important;
     z-index: 3;
 }
+
+/* Film Score (pourra être indiqué autrement) */
+.movie-score {
+    margin-top: 5px;
+    font-weight: bold;
+}

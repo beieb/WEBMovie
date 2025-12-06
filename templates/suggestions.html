@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Suggestions</title>
+      <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  </head>
+
+  <body>
+        {% include 'components/nav_bar.html' %}
+
+        <h1>Suggestions</h1>
+
+        <div class="films-container">
+            {% for movie in suggest_movies %}
+            <div class="movie-item">
+                {% set film = movie %}
+                {% include 'components/movie_item.html' %}
+                <div class="movie-score">Score : {{ movie.score | int }}</div>
+            </div>
+            {% endfor %}
+        </div>
+  </body>
+</html>

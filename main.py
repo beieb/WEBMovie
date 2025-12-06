@@ -187,6 +187,40 @@ def movie_details(imdb_id):
 #    return render_template("movie_details.html", film=film, details=details)
     return render_template("movie_details.html", film=film)
 
+
+@app.route("/suggestions")
+def suggestions():
+    #TODO: Check user connection and get user_id
+    user_id = 1
+
+    with open("cypher_queries/movies_suggestion.cypher", "r", encoding="utf-8") as f:
+        cypher_query = f.read()
+
+    suggest_movies = conn.query(cypher_query, params={"user_id": user_id})
+    if suggest_movies is None:
+        return {"error": "Neo4j query failed"}, 500
+    print(suggest_movies)
+
+    #TODO: Refactoring : Same code repeated to get posters link
+    for movie in suggest_movies:
+        imdb_id = movie.get("imdb_id")
+        if not imdb_id:
+            continue
+        url = (
+            f"https://api.themoviedb.org/3/find/{imdb_id}"
+            f"?api_key={tmdb.api_key}&external_source=imdb_id"
+        )
+        response = requests.get(url)
+        if response.status_code != 200:
+            continue
+        data = response.json()
+        if data.get("movie_results") and data["movie_results"][0].get("poster_path"):
+            poster_path = data["movie_results"][0]["poster_path"]
+            movie["full_poster_url"] = f"https://image.tmdb.org/t/p/w500{poster_path}"
+
+    return render_template("suggestions.html", suggest_movies=suggest_movies)
+
+
 # =============================
 #        LAUNCH APP
 # =============================
