@@ -5,7 +5,7 @@ WITH client, other,
      collect(r1.value) AS ratings1,  // vecteur de notes du client
      collect(r2.value) AS ratings2,  // vecteur de notes de l'autre utilisateur
      COUNT(m) AS nbMovies            // taille des vecteurs
-WHERE nbMovies > 2
+WHERE nbMovies > 5
 
 // Calcule le coefficient de similarité entre le client et les autres utilisateur
 // La métrique de Pearson est utilisée mais d'autres fonctions existent (Cosine)
@@ -39,7 +39,7 @@ WITH suggestion,
 MATCH (suggestion)<-[allRatings:RATING]-()
 WITH suggestion,
      SUM(weightedRating) AS collaborativeScore,  // Somme des notes pondérées
-     AVG(allRatings.value) AS avgRating,         // Moyenne des notes sur les films
+     suggestion.rating_avg AS avgRating,         // Moyenne des notes sur les films (stockage statique)
      genreScore
 
 // Calcule du score de suggestion avec les 3 facteur :
