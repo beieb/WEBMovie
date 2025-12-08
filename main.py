@@ -24,7 +24,6 @@ class Neo4jConnection:
     def connect(self):
         try:
             self._driver = GraphDatabase.driver(self._uri, auth=(self._user, self._password))
-            # Test immédiat de connexion
             with self._driver.session() as session:
                 result = session.run("RETURN 'Neo4j connection successful' AS message")
                 print(result.single()["message"])
@@ -32,14 +31,12 @@ class Neo4jConnection:
             print("❌ Erreur de connexion à Neo4j :", e)
 
     def close(self):
-        if self._driver is not None:
+        if self._driver:
             self._driver.close()
 
     def query(self, cypher, params=None):
-        """Execute une requete Cypher et retourne le resultat"""
         if params is None:
             params = {}
-
         try:
             with self._driver.session() as session:
                 result = session.run(cypher, params)
@@ -48,17 +45,15 @@ class Neo4jConnection:
             print("❌ Neo4j query error:", e)
             return None
 
-
 # =============================
 #       CONFIGURATION
 # =============================
-db_uri = os.getenv("NEO4J_URI", "bolt://127.0.0.1:7687")
+db_uri = os.getenv("NEO4J_URI", "neo4j://127.0.0.1:7687")
 db_user = os.getenv("NEO4J_USER", "neo4j")
 db_password = os.getenv("NEO4J_PASSWORD", "neo4j_password")
 
 conn = Neo4jConnection(db_uri, db_user, db_password)
-conn.connect()  # Test auto
-
+conn.connect()
 
 # TMDB API
 tmdb = TMDb()
@@ -67,6 +62,7 @@ movie = Movie()
 
 # Flask + MongoDB
 app = Flask(__name__)
+app.secret_key = "ma_super_clef_secrete_123"
 client = MongoClient("mongodb://localhost:27017/")
 db = client["movie"]
 
@@ -106,19 +102,65 @@ def main():
 
     return render_template("main.html", best_movies=best_movies)
 
-
-
-
 @app.route("/login", methods=["GET", "POST"])
 def login():
-    if requests.method == "POST":
-        email = requests.form["email"]
-        password = requests.form["password"]
+    if request.method == "POST":
+        pseudo = request.form.get("pseudo")
+        # password = request.form.get("password")
+        query = """
+            MATCH (u:USER {pseudo: $pseudo})
+            RETURN u.pseudo AS pseudo, u.password AS password, u.user_id AS user_id
+        """
 
+        result = conn.query(query, {"pseudo": pseudo})
+        if not result:
+            return "Pseudo inconnu", 401
 
-        return "Connexion OK"
+        user = result[0]
+
+        # if user["password"] != password:
+        #     return "Mot de passe incorrect", 401
+
+        # Création de la session
+        session["logged"] = True
+        session["pseudo"] = user["pseudo"]
+        session["user_id"] = user["user_id"]
+
+        return redirect("/main")
 
     return render_template("login.html")
+
+@app.route("/register", methods=["GET", "POST"])
+def register():
+    if request.method == "POST":
+        pseudo = request.form.get("pseudo")
+        password = request.form.get("password")
+
+        check_query = """
+            MATCH (u:USER {pseudo: $pseudo})
+            RETURN u
+        """
+        existing = conn.query(check_query, {"pseudo": pseudo})
+
+        if existing:
+            return "Ce pseudo est déjà utilisé", 400
+
+        create_query = """
+            CREATE (u:USER {pseudo: $pseudo, password: $password})
+            RETURN elementId(u) AS user_id
+        """
+        new_user = conn.query(create_query, {"pseudo": pseudo, "password": password})
+
+        if not new_user:
+            return "Erreur lors de la création du compte", 500
+
+        session["logged"] = True
+        session["pseudo"] = pseudo
+        session["user_id"] = new_user[0]["user_id"]
+
+        return redirect("/main")
+
+    return render_template("register.html")
 
 @app.route("/logout")
 def logout():
@@ -191,8 +233,10 @@ def movie_details(imdb_id):
 
 @app.route("/suggestions")
 def suggestions():
-    #TODO: Check user connection and get user_id
-    user_id = 1
+    if not session.get("logged") or not session.get("user_id"):
+        return redirect("/login")
+
+    user_id = session["user_id"]  
 
     with open("cypher_queries/movies_suggestion.cypher", "r", encoding="utf-8") as f:
         cypher_query = f.read()
@@ -220,7 +264,6 @@ def suggestions():
             movie["full_poster_url"] = f"https://image.tmdb.org/t/p/w500{poster_path}"
 
     return render_template("suggestions.html", suggest_movies=suggest_movies)
-
 
 # =============================
 #        LAUNCH APP
