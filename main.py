@@ -221,6 +221,42 @@ def suggestions():
 
     return render_template("suggestions.html", suggest_movies=suggest_movies)
 
+@app.route("/search", methods=["GET", "POST"])
+def search():
+    name = request.args.get("name", "")
+    film = db.movies_metadata.find_one({
+    "original_title": {"$regex": name, "$options": "i"}})
+    
+    if not film:
+        return "Film non trouvé", 404
+    
+    raw = film.get("genres")
+    if isinstance(raw, str):
+        try:
+            parsed = ast.literal_eval(raw)
+            film["genres"] = [g["name"] for g in parsed]
+        except:
+            film["genres"] = []
+    else:
+        film["genres"] = []
+
+
+    url = (
+        f"https://api.themoviedb.org/3/find/{film['imdb_id']}"
+        f"?api_key={tmdb.api_key}&external_source=imdb_id"
+    )
+    r = requests.get(url)
+    data = r.json()
+
+    if data.get("movie_results"):
+        poster = data["movie_results"][0].get("poster_path")
+        if poster:
+            film["full_poster_url"] = f"https://image.tmdb.org/t/p/w500{poster}"
+
+    return render_template("movie_details.html", film=film)
+    
+
+
 
 # =============================
 #        LAUNCH APP

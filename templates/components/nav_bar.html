@@ -2,14 +2,14 @@
 
     <!-- Gauche : Logo + Titre -->
     <div class="nav-left">
-        <img src="{{ url_for('static', filename='img/image-univ.png') }}" class="nav-logo" alt="logo">
+        <img src="{{ url_for('static', filename='img/image-univ.png') }}" class="nav-logo" alt="logo" onclick="location.href='/main'">
         <h2 class="nav-title">Movie</h2>
     </div>
 
     <!-- Centre : Recherche -->
     <div class="nav-search">
         <form action="/search" method="GET">
-            <input type="text" name="q" placeholder="Rechercher un film..." required>
+            <input id="name" type="text" name="name" placeholder="Rechercher un film..." required>
             <button type="submit">search</button>
         </form>
     </div>
