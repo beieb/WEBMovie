@@ -63,15 +63,19 @@ movie = Movie()
 # Flask + MongoDB
 app = Flask(__name__)
 app.secret_key = "ma_super_clef_secrete_123"
-client = MongoClient("mongodb://localhost:27017/")
+#client = MongoClient("mongodb://localhost:27017/")
+#db = client["movie"]
+mongo_url = os.getenv("MONGO_URL", "mongodb://host.docker.internal:27017/")
+client = MongoClient(mongo_url)
 db = client["movie"]
 
 
 # =============================
 #           ROUTES
 # =============================
+
 #TODO: Change route of home page to just / or redirect / to /main
-@app.route("/main")
+@app.route("/")
 def main():
     best_movies = list(
         db.movies_metadata
@@ -306,4 +310,5 @@ def search():
 #        LAUNCH APP
 # =============================
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=5000, debug=True)
+

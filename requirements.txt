@@ -1,0 +1,7 @@
+Flask
+pymongo
+tmdbv3api
+neo4j
+requests
+python-dotenv
+gunicorn
