@@ -47,4 +47,4 @@ WITH suggestion,
 RETURN suggestion.title AS title, suggestion.imdb_id AS imdb_id,
        collaborativeScore * (1 + genreScore) * (1 + 0.1 * avgRating) AS score
 ORDER BY score DESC
-LIMIT 10;
+LIMIT 30;
