@@ -1,3 +1,5 @@
+{% set best_score = (suggest_movies[0].score | float) if suggest_movies|length > 0 else 0 %}
+
 <!DOCTYPE html>
 <html lang="fr">
   <head>
@@ -17,7 +19,13 @@
             <div class="movie-item">
                 {% set film = movie %}
                 {% include 'components/movie_item.html' %}
-                <div class="movie-score">Score : {{ movie.score | int }}</div>
+
+                {% set score = movie.score | float %}
+                {% set percent = (score / best_score * 100) if best_score > 0 else 0 %}
+
+                <div class="movie-score" title="{{ score|round(2) }}">
+                    Score : {{ percent|round(1) }} %
+                </div>
             </div>
             {% endfor %}
         </div>
