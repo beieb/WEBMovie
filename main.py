@@ -270,37 +270,33 @@ def suggestions():
 @app.route("/search", methods=["GET", "POST"])
 def search():
     name = request.args.get("name", "")
-    film = db.movies_metadata.find_one({
-    "original_title": {"$regex": name, "$options": "i"}})
+    films = list(
+        db.movies_metadata
+        .find({"original_title": {"$regex": name, "$options": "i"}})
+        .sort("vote_count", -1)
+        )
     
-    if not film:
-        return "Film non trouvé", 404
-    
-    raw = film.get("genres")
-    if isinstance(raw, str):
-        try:
-            parsed = ast.literal_eval(raw)
-            film["genres"] = [g["name"] for g in parsed]
-        except:
-            film["genres"] = []
-    else:
-        film["genres"] = []
+    for film in films:
+        imdb_id = film.get("imdb_id")
+        if not imdb_id:
+            continue
 
+        url = (
+            f"https://api.themoviedb.org/3/find/{imdb_id}"
+            f"?api_key={tmdb.api_key}&external_source=imdb_id"
+        )
 
-    url = (
-        f"https://api.themoviedb.org/3/find/{film['imdb_id']}"
-        f"?api_key={tmdb.api_key}&external_source=imdb_id"
-    )
-    r = requests.get(url)
-    data = r.json()
+        response = requests.get(url)
+        if response.status_code != 200:
+            continue
 
-    if data.get("movie_results"):
-        poster = data["movie_results"][0].get("poster_path")
-        if poster:
-            film["full_poster_url"] = f"https://image.tmdb.org/t/p/w500{poster}"
+        data = response.json()
+        if data.get("movie_results") and data["movie_results"][0].get("poster_path"):
+            poster_path = data["movie_results"][0]["poster_path"]
+            film["full_poster_url"] = f"https://image.tmdb.org/t/p/w500{poster_path}"
 
-    return render_template("movie_details.html", film=film)
-    
+    return render_template("main.html", best_movies=films)
+  
 
 
 
