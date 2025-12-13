@@ -5,9 +5,6 @@ from pymongo import MongoClient
 from tmdbv3api import TMDb, Movie
 from neo4j import GraphDatabase
 import requests
-from dotenv import load_dotenv
-
-load_dotenv()  # load .env
 
 
 
@@ -48,26 +45,27 @@ class Neo4jConnection:
 # =============================
 #       CONFIGURATION
 # =============================
-db_uri = os.getenv("NEO4J_URI", "neo4j://127.0.0.1:7687")
-db_user = os.getenv("NEO4J_USER", "neo4j")
-db_password = os.getenv("NEO4J_PASSWORD", "neo4j_password")
 
-conn = Neo4jConnection(db_uri, db_user, db_password)
+# Flask
+app = Flask(__name__)
+app.secret_key = os.environ.get("FLASK_SECRET_KEY", "0123456789")
+
+# Neo4j
+NEO4J_URI = os.environ["NEO4J_URI"]
+NEO4J_USER = os.environ["NEO4J_USER"]
+NEO4J_PASSWORD = os.environ["NEO4J_PASSWORD"]
+conn = Neo4jConnection(NEO4J_URI, NEO4J_USER, NEO4J_PASSWORD)
 conn.connect()
+
+# MongoDB
+mongo_url = os.environ["MONGO_URL"]
+client = MongoClient(mongo_url)
+db = client["movie"]
 
 # TMDB API
 tmdb = TMDb()
 tmdb.api_key = '4a5d922af6e223215c319ef376c12050'
 movie = Movie()
-
-# Flask + MongoDB
-app = Flask(__name__)
-app.secret_key = "ma_super_clef_secrete_123"
-#client = MongoClient("mongodb://localhost:27017/")
-#db = client["movie"]
-mongo_url = os.getenv("MONGO_URL", "mongodb://host.docker.internal:27017/")
-client = MongoClient(mongo_url)
-db = client["movie"]
 
 
 # =============================
