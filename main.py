@@ -72,7 +72,6 @@ movie = Movie()
 #           ROUTES
 # =============================
 
-#TODO: Change route of home page to just / or redirect / to /main
 @app.route("/")
 def main():
     best_movies = list(
@@ -128,7 +127,7 @@ def login():
         session["pseudo"] = user["pseudo"]
         session["user_id"] = user["user_id"]
 
-        return redirect("/main")
+        return redirect("/")
 
     return render_template("login.html")
 
@@ -160,14 +159,14 @@ def register():
         session["pseudo"] = pseudo
         session["user_id"] = new_user[0]["user_id"]
 
-        return redirect("/main")
+        return redirect("/")
 
     return render_template("register.html")
 
 @app.route("/logout")
 def logout():
     session.clear()
-    return redirect("/main")
+    return redirect("/")
 
 @app.route("/neo4j/user")
 def neo4j_user():
