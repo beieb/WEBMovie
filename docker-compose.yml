@@ -1,15 +1,25 @@
-version: "3.8"
-
 services:
   web:
     build: .
     container_name: movie_app
     ports:
       - "5000:5000"
-    environment:
-      NEO4J_URI: bolt://host.docker.internal:7687
-      NEO4J_USER: neo4j
-      NEO4J_PASSWORD: neo4j_password
-      MONGO_URL: mongodb://host.docker.internal:27017/
+    env_file:
+      - .env.local
+    depends_on:
+      - mongo
     extra_hosts:
       - "host.docker.internal:host-gateway"
+
+  mongo:
+    image: mongo:7
+    container_name: mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db   # data persistance
+      - ./mongo-init:/docker-entrypoint-initdb.d:ro  # init DB with dump
+      - ./dump:/dump:ro
+
+volumes:
+  mongo_data:
