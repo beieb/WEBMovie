@@ -18,7 +18,7 @@
     <div class="nav-right">
 
         {% if session.get('logged') %}
-            <span class="nav-user">Bonjour {{ session.get('user_id') }}</span>
+            <span class="nav-user">Hello, {{ session.get('pseudo') }}</span>
             <button onclick="location.href='/profile'">Profil</button>
             <button onclick="location.href='/logout'">Logout</button>
         {% else %}
