@@ -5,3 +5,4 @@ neo4j
 requests
 python-dotenv
 gunicorn
+uuid

@@ -5,7 +5,7 @@ from pymongo import MongoClient
 from tmdbv3api import TMDb, Movie
 from neo4j import GraphDatabase
 import requests
-
+import uuid
 
 
 # =============================
@@ -138,26 +138,31 @@ def register():
         password = request.form.get("password")
 
         check_query = """
-            MATCH (u:USER {pseudo: $pseudo})
-            RETURN u
-        """
+                    MATCH (u:USER {pseudo: $pseudo})
+                    RETURN u
+                """
         existing = conn.query(check_query, {"pseudo": pseudo})
 
         if existing:
             return "Ce pseudo est déjà utilisé", 400
 
-        create_query = """
-            CREATE (u:USER {pseudo: $pseudo, password: $password})
-            RETURN elementId(u) AS user_id
-        """
-        new_user = conn.query(create_query, {"pseudo": pseudo, "password": password})
+        user_id = str(uuid.uuid4())     # UUID v4 = 122 bits of random -> 5.3e+36 combinations
+
+        with open("cypher_queries/create_user.cypher", "r", encoding="utf-8") as f:
+            cypher_query = f.read()
+
+        new_user = conn.query(cypher_query, params={
+            "pseudo": pseudo,
+            "password": password,
+            "user_id": user_id
+        })
 
         if not new_user:
             return "Erreur lors de la création du compte", 500
 
         session["logged"] = True
         session["pseudo"] = pseudo
-        session["user_id"] = new_user[0]["user_id"]
+        session["user_id"] = user_id
 
         return redirect("/")
 
@@ -166,6 +171,7 @@ def register():
 @app.route("/logout")
 def logout():
     session.clear()
+    session["logged"] = False
     return redirect("/")
 
 @app.route("/neo4j/user")
@@ -186,17 +192,29 @@ def neo4j_user():
 
 @app.route("/rate_movie", methods=["POST"])
 def rate_movie():
-    movie_id = request.form.get("movie_id")
-    rating = request.form.get("rating")
-    user_id = session.get("user_id")
+    if not session.get("logged") or not "user_id" in session:
+        return redirect("/login")
 
-    #TODO: Change to create (replace if exists) rating in NEO4J db instead MongoDB
-    db.ratings.insert_one({
+    user_id = session.get("user_id")
+    imdb_id = request.form.get("movie_id")
+    rating = int(request.form.get("rating"))
+
+    with open("cypher_queries/rate_movie.cypher", "r", encoding="utf-8") as f:
+        cypher_query = f.read()
+
+    result = conn.query(cypher_query, params={
         "user_id": user_id,
-        "movie_id": movie_id,
-        "rating": float(rating)
+        "imdb_id": imdb_id,
+        "value": rating
     })
-    return {"status": "success"}, 200
+
+    if result is None:
+        print("Error 500 - Add Rating in Neo4j Database")
+        print(f"\tuser_id: {user_id}\tmovie_imdb_id: {imdb_id}\trating: {rating}")
+        return {"error": "Neo4j query failed"}, 500
+    else:
+        # TODO: Change to prevent page change after rating
+        return {"status": "success"}, 200
 
 @app.route("/movie/<imdb_id>")
 def movie_details(imdb_id):
@@ -234,7 +252,7 @@ def movie_details(imdb_id):
 
 @app.route("/suggestions")
 def suggestions():
-    if not session.get("logged") or not session.get("user_id"):
+    if not session.get("logged") or not "user_id" in session:
         return redirect("/login")
 
     user_id = session["user_id"]  
@@ -245,7 +263,6 @@ def suggestions():
     suggest_movies = conn.query(cypher_query, params={"user_id": user_id})
     if suggest_movies is None:
         return {"error": "Neo4j query failed"}, 500
-    print(suggest_movies)
 
     #TODO: Refactoring : Same code repeated to get posters link
     for movie in suggest_movies:
