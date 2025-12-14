@@ -36,7 +36,8 @@ h1 {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
     gap: 20px;
-    padding: 20px;
+    justify-content: center;
+
 }
 
 /* ===== FILM CARD ===== */
@@ -148,4 +149,56 @@ h1 {
 #success-check.show {
     opacity: 1;
     transform: translate(-50%, -50%) scale(1);
+}
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    margin: 40px 0;
+    flex-wrap: wrap;
+}
+
+.pagination a {
+    min-width: 36px;
+    padding: 8px 12px;
+    text-align: center;
+    text-decoration: none;
+    border: 1px solid #aaa;
+    border-radius: 4px;
+    color: #333;
+    background-color: #fff;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.pagination a:hover {
+    background-color: #333;
+    color: #fff;
+}
+
+.pagination a.active {
+    background-color: #333;
+    color: #fff;
+    font-weight: bold;
+    pointer-events: none;
+}
+
+.pagination .dots {
+    padding: 8px 12px;
+    color: #777;
+    user-select: none;
+}
+
+/* Responsive (mobile) */
+@media (max-width: 480px) {
+    .pagination {
+        gap: 4px;
+    }
+
+    .pagination a {
+        padding: 6px 10px;
+        min-width: 32px;
+        font-size: 14px;
+    }
 }

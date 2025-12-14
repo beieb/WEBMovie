@@ -6,6 +6,7 @@ from tmdbv3api import TMDb, Movie
 from neo4j import GraphDatabase
 import requests
 import uuid
+import math
 
 
 # =============================
@@ -72,16 +73,27 @@ movie = Movie()
 #           ROUTES
 # =============================
 
+
+
 @app.route("/")
 def main():
+    page = request.args.get("page", 1, type=int)
+    per_page = 18 
+
+    query = {"vote_average": {"$gt": 8}}
+
+    total_movies = db.movies_metadata.count_documents(query)
+    total_pages = math.ceil(total_movies / per_page)
+
     best_movies = list(
         db.movies_metadata
-          .find({"vote_average": {"$gt": 8}})
+          .find(query)
           .sort("vote_count", -1)
-          .limit(12)
+          .skip((page - 1) * per_page)
+          .limit(per_page)
     )
 
-
+    # récupération des posters TMDB
     for film in best_movies:
         imdb_id = film.get("imdb_id")
         if not imdb_id:
@@ -101,7 +113,15 @@ def main():
             poster_path = data["movie_results"][0]["poster_path"]
             film["full_poster_url"] = f"https://image.tmdb.org/t/p/w500{poster_path}"
 
-    return render_template("main.html", best_movies=best_movies)
+    return render_template(
+        "main.html",
+        best_movies=best_movies,
+        page=page,
+        total_pages=total_pages,
+        endpoint="main",
+        search_name = None
+    )
+
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -298,11 +318,26 @@ def suggestions():
 
 @app.route("/search", methods=["GET", "POST"])
 def search():
+    page = request.args.get("page", 1, type=int)
+    per_page = 18
     name = request.args.get("name", "")
+
+    query = {
+        "original_title": {
+            "$regex": name,
+            "$options": "i"
+        }
+    }
+    total_movies = db.movies_metadata.count_documents(query)
+
+    total_pages = math.ceil(total_movies / per_page)
+
     films = list(
         db.movies_metadata
         .find({"original_title": {"$regex": name, "$options": "i"}})
         .sort("vote_count", -1)
+        .skip((page-1)*per_page)
+        .limit(per_page)
         )
     
     for film in films:
@@ -324,7 +359,12 @@ def search():
             poster_path = data["movie_results"][0]["poster_path"]
             film["full_poster_url"] = f"https://image.tmdb.org/t/p/w500{poster_path}"
 
-    return render_template("main.html", best_movies=films)
+    return render_template("main.html",
+                            best_movies=films,
+                            page=page,
+                            total_pages=total_pages, 
+                            endpoint="search",
+                            search_name= name)
   
 
 
