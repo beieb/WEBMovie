@@ -131,3 +131,21 @@ h1 {
     margin-top: 5px;
     font-weight: bold;
 }
+
+
+/* ✅ when rating validated */
+#success-check {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.5);
+    font-size: 8rem;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    z-index: 9999;
+}
+#success-check.show {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+}
