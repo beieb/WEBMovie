@@ -326,6 +326,44 @@ def search():
 
     return render_template("main.html", best_movies=films)
   
+@app.route("/profile")
+def profile():
+    if not session.get("logged") or "user_id" not in session:
+        return redirect("/login")
+
+    user_id = session["user_id"]
+
+    # Récupération des films notés par l'utilisateur
+    with open("cypher_queries/get_ratings_by_user.cypher", "r", encoding="utf-8") as f:
+        cypher_query = f.read()
+
+    rated_movies = conn.query(cypher_query, params={"user_id": user_id}) or []
+
+    # Récupération des posters TMDB
+    for movie in rated_movies:
+        imdb_id = movie.get("imdb_id")
+        if not imdb_id:
+            continue
+
+        url = (
+            f"https://api.themoviedb.org/3/find/{imdb_id}"
+            f"?api_key={tmdb.api_key}&external_source=imdb_id"
+        )
+        response = requests.get(url)
+        if response.status_code != 200:
+            continue
+
+        data = response.json()
+        if data.get("movie_results") and data["movie_results"][0].get("poster_path"):
+            poster_path = data["movie_results"][0]["poster_path"]
+            movie["full_poster_url"] = f"https://image.tmdb.org/t/p/w500{poster_path}"
+
+    return render_template(
+        "profile.html",
+        rated_movies=rated_movies,
+        pseudo=session.get("pseudo")
+    )
+
 
 
 

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Profil - {{ pseudo }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    {% include 'components/nav_bar.html' %}
+
+<h2>⭐ Films notés (triés par note)</h2>
+
+{% if rated_movies %}
+    <div class="movies-grid">
+        <div class="films-container">
+            {% set hide_vote_average = true %}
+            {% for movie in rated_movies %}
+                {% set film = movie %}
+                {% include 'components/movie_item.html' %}
+            {% endfor %}
+        </div>
+    </div>
+{% else %}
+    <p>Tu n’as encore noté aucun film.</p>
+{% endif %}
+
+</body>
+</html>
+
+<style>
+/* ===== MOVIES GRID ===== */
+.movies-grid { 
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+}
+.movie-card {
+    background: #f4f4f4;
+    padding: 15px;
+    border-radius: 8px;
+    text-align: center;
+}
+.movie-card img {
+    width: 100%;
+    height: auto;
+    border-radius: 5px;
+    margin-bottom: 10px;
+}
+</style>
