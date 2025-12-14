@@ -1,0 +1,116 @@
+{%extends "base.html" %}
+
+{% block title %}Favorite genres{% endblock %}
+
+{% block content %}
+
+<style>
+    .genres-container {
+        max-width: 600px;
+        margin: 40px auto;
+    }
+    .selected-genres {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin: 15px 0;
+    }
+    .genre-tag {
+        background: #eee;
+        padding: 6px 10px;
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .genre-tag button {
+        border: none;
+        background: transparent;
+        cursor: pointer;
+        font-weight: bold;
+    }
+</style>
+
+<h1>My favorite movie genres</h1>
+
+<div class="genres-container">
+
+    <select id="genre-select">
+        <option value="" disabled selected>Ajouter un genre</option>
+        {% for genre in all_genres %}
+            <option value="{{ genre }}">{{ genre }}</option>
+        {% endfor %}
+    </select>
+
+    <div class="selected-genres" id="selected-genres">
+        {% for genre in user_genres %}
+            <div class="genre-tag" data-genre="{{ genre }}">
+                {{ genre }}
+                <button type="button">✕</button>
+            </div>
+        {% endfor %}
+    </div>
+
+    <button id="save-genres">Save changes</button>
+
+</div>
+
+
+<script>
+    const select = document.getElementById("genre-select");
+    const container = document.getElementById("selected-genres");
+    const saveBtn = document.getElementById("save-genres");
+
+    function getSelectedGenres() {
+        return [...container.querySelectorAll(".genre-tag")]
+            .map(tag => tag.dataset.genre);
+    }
+
+    select.addEventListener("change", () => {
+        const genre = select.value;
+        if (!genre) return;
+
+        if (getSelectedGenres().includes(genre)) return;
+
+        const tag = document.createElement("div");
+        tag.className = "genre-tag";
+        tag.dataset.genre = genre;
+        tag.innerHTML = `${genre} <button type="button">✕</button>`;
+
+        container.appendChild(tag);
+        select.value = "";
+    });
+
+    container.addEventListener("click", e => {
+        if (e.target.tagName === "BUTTON") {
+            e.target.parentElement.remove();
+        }
+    });
+
+    saveBtn.addEventListener("click", () => {
+        const genres = getSelectedGenres();
+
+        fetch("/update_genres", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ genres })
+        })
+        .then(async res => {
+            if (res.status === 401) {
+                window.location.href = "/login";
+                return;
+            }
+            if (!res.ok) throw new Error("HTTP " + res.status);
+            return res.json();
+        })
+        .then(data => {
+            if (!data) return;
+            if (data.success) {
+                showSuccessCheck()
+            }
+        })
+        .catch(err => console.error(err));
+    });
+</script>
+
+{% endblock %}

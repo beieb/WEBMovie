@@ -20,6 +20,7 @@
         {% if session.get('logged') %}
             <span class="nav-user">Hello, {{ session.get('pseudo') }}</span>
             <button onclick="location.href='/profile'">Profil</button>
+            <button onclick="location.href='/preferences'">Preferences</button>
             <button onclick="location.href='/logout'">Logout</button>
         {% else %}
             <button onclick="location.href='/login'">Sign In</button>
