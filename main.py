@@ -127,6 +127,13 @@ def login():
         session["pseudo"] = user["pseudo"]
         session["user_id"] = user["user_id"]
 
+        # Retrieving user's ratings
+        with open("cypher_queries/get_ratings_by_user.cypher", "r", encoding="utf-8") as f:
+            cypher_query = f.read()
+        ratings_list = conn.query(cypher_query, params={"user_id": user["user_id"]}) or []
+        ratings_dict = {r["imdb_id"]: r["value"] for r in ratings_list}
+        session["ratings"] = ratings_dict
+
         return redirect("/")
 
     return render_template("login.html")
@@ -163,6 +170,7 @@ def register():
         session["logged"] = True
         session["pseudo"] = pseudo
         session["user_id"] = user_id
+        session["ratings"] = {}
 
         return redirect("/")
 
@@ -218,6 +226,7 @@ def rate_movie():
         print(f"\tuser_id: {user_id}\tmovie_imdb_id: {imdb_id}\trating: {rating}")
         return jsonify({"success": False, "error": "Neo4j query failed"}), 500
     else:
+        session["ratings"][imdb_id] = rating
         return jsonify({"success": True}), 200
 
 @app.route("/movie/<imdb_id>")

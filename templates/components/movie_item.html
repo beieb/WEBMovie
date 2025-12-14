@@ -1,3 +1,5 @@
+{% set actual_rating = session.get("ratings", {}).get(film.imdb_id) %}
+
 <div class="film-item">
     <a href="/movie/{{ film.imdb_id }}">
 
@@ -15,9 +17,9 @@
 
             <label>Votre note :</label>
             <select name="rating" required>
-                <option value="" disabled selected>Choisir</option>
+                <option value="" disabled {% if actual_rating is none %}selected{% endif %}>Choisir</option>
                 {% for i in range(1, 11) %}
-                    <option value="{{ i }}">{{ i }}</option>
+                    <option value="{{ i }}" {% if actual_rating == i %}selected{% endif %}>{{ i }}</option>
                 {% endfor %}
             </select>
 
