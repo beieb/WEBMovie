@@ -21,7 +21,20 @@ document.addEventListener("submit", function (e) {
     })
     .then(data => {
         if (!data) return;
+        showSuccessCheck();
         console.log(data);
     })
     .catch(err => console.error("Fetch error:", err));
 });
+
+// To display a big ✅ after rating without error
+const check = document.createElement("div");
+check.id = "success-check";
+check.textContent = "✅";
+document.body.appendChild(check);
+function showSuccessCheck() {
+    check.classList.add("show");
+    setTimeout(() => {
+        check.classList.remove("show");
+    }, 1000);
+}
