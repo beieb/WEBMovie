@@ -7,6 +7,7 @@ from neo4j import GraphDatabase
 import requests
 import uuid
 import math
+import csv
 
 
 # =============================
@@ -461,7 +462,49 @@ def profile():
         pseudo=session.get("pseudo")
     )
 
+@app.route("/import_ratings_csv", methods=["POST"])
+def import_ratings_csv():
+    if not session.get("logged"):
+        return jsonify(success=False, error="unauthorized"), 401
 
+    file = request.files.get("csv_file")
+    if not file or not file.filename.endswith(".csv"):
+        return jsonify(success=False, error="invalid_file"), 400
+
+    stream = file.stream.read().decode("utf-8").splitlines()
+    reader = csv.reader(stream)
+
+    user_id = session["user_id"]
+
+    # detect if headers are on the 1st line
+    first_row = next(reader, None)
+    if first_row == ["imdb_id", "rating"]:
+        rows = reader
+    else:
+        rows = [first_row] + list(reader)
+
+    for row in rows:
+        try:
+            if len(row) != 2:
+                continue
+            imdb_id, rating = row
+            rating = int(rating)
+
+            if 0 < rating <= 10:
+                conn.query(
+                    open("cypher_queries/rate_movie.cypher").read(),
+                    params={
+                        "user_id": user_id,
+                        "imdb_id": imdb_id,
+                        "value": rating
+                    }
+                )
+                session["ratings"][imdb_id] = rating
+        except:
+            print(row)
+            continue
+
+    return jsonify(success=True)
 
 
 # =============================
