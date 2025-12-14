@@ -274,7 +274,8 @@ def preferences():
     return render_template(
         "preferences.html",
         all_genres=movie_genres,
-        user_genres=session.get("genres", [])
+        user_genres=session.get("genres", []),
+        pseudo=session.get("pseudo")
     )
 
 @app.route("/update_genres", methods=["POST"])
