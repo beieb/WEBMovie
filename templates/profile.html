@@ -8,6 +8,8 @@
 <body>
     {% include 'components/nav_bar.html' %}
 
+<button id="open-import-modal">Import from CSV</button>
+
 <h2>⭐ Films notés (triés par note)</h2>
 
 {% if rated_movies %}
@@ -23,6 +25,62 @@
 {% else %}
     <p>Tu n’as encore noté aucun film.</p>
 {% endif %}
+
+<div id="import-modal" class="modal hidden">
+    <div class="modal-content">
+        <h2>Import Ratings from CSV File</h2>
+
+        <p class="hint">
+            Expected format: <code>imdb_id,rating</code>
+            <br>
+            ⚠️ Ratings must be between 1 and 10.
+        </p>
+
+        <form id="import-form">
+            <input type="file" name="csv_file" accept=".csv" required>
+            <div class="modal-actions">
+                <button type="submit">Import</button>
+                <button type="button" id="close-import-modal">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    const modal = document.getElementById("import-modal");
+    const openBtn = document.getElementById("open-import-modal");
+    const closeBtn = document.getElementById("close-import-modal");
+    const form = document.getElementById("import-form");
+
+    openBtn.addEventListener("click", () => {
+        modal.classList.remove("hidden");
+    });
+
+    closeBtn.addEventListener("click", () => {
+        modal.classList.add("hidden");
+    });
+
+    form.addEventListener("submit", e => {
+        e.preventDefault();
+
+        const formData = new FormData(form);
+
+        fetch("/import_ratings_csv", {
+            method: "POST",
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                modal.classList.add("hidden");
+                alert("Import completed ✅");
+            } else {
+                alert("Error : " + data.error);
+            }
+        })
+        .catch(err => console.error(err));
+    });
+</script>
 
 </body>
 </html>
@@ -47,4 +105,40 @@
     border-radius: 5px;
     margin-bottom: 10px;
 }
+
+/* ===== FOR CSV IMPORT DIALOG BOX ===== */
+.modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+}
+.modal.hidden {
+    display: none;
+}
+.modal-content {
+    background: white;
+    padding: 25px;
+    border-radius: 8px;
+    width: 420px;
+    max-width: 90%;
+}
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 15px;
+}
+.hint {
+    font-size: 0.9em;
+    color: #555;
+}
+code {
+    background: #f3f3f3;
+    padding: 2px 4px;
+}
+
 </style>
