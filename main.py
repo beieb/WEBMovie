@@ -1,6 +1,6 @@
 import ast
 import os
-from flask import Flask, json, redirect, render_template, session, request, jsonify
+from flask import Flask, json, redirect, render_template, session, request, jsonify, flash, url_for
 from pymongo import MongoClient
 from tmdbv3api import TMDb, Movie
 from neo4j import GraphDatabase
@@ -107,7 +107,7 @@ def main():
 def login():
     if request.method == "POST":
         pseudo = request.form.get("pseudo")
-        # password = request.form.get("password")
+        password = request.form.get("password")
         query = """
             MATCH (u:USER {pseudo: $pseudo})
             RETURN u.pseudo AS pseudo, u.password AS password, u.user_id AS user_id
@@ -116,6 +116,11 @@ def login():
         result = conn.query(query, {"pseudo": pseudo})
         if not result:
             return "Pseudo inconnu", 401
+        
+        result = conn.query(query, {"pseudo": pseudo})
+        if not result or result[0]["password"] != password:
+            flash("Pseudo ou mot de passe incorrect", "error")
+            return redirect(url_for("login"))
 
         user = result[0]
 
@@ -151,7 +156,8 @@ def register():
         existing = conn.query(check_query, {"pseudo": pseudo})
 
         if existing:
-            return "Ce pseudo est déjà utilisé", 400
+            flash("Pseudo déja existant", "error")
+            return redirect(url_for("register"))
 
         user_id = str(uuid.uuid4())     # UUID v4 = 122 bits of random -> 5.3e+36 combinations
 

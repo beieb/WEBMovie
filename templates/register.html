@@ -10,6 +10,17 @@
     <form class="register-box" method="POST" action="/register">
         <h1>Créer un compte</h1>
 
+        {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                    <div class="error-message">
+                        {{ message }}
+                    </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+
         <div class="input-group">
             <label for="pseudo">Pseudo :</label>
             <input id="pseudo" name="pseudo" placeholder="Votre pseudo" required>
