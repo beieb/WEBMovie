@@ -10,7 +10,7 @@
         <h3>{{ film.title }}</h3>
         <p>Note : {{ film.vote_average }}/10</p>
 
-        <form method="POST" action="/rate_movie" class="overlay-form" onsubmit="event.stopPropagation()">
+        <form class="overlay-form rating-form">
             <input type="hidden" name="movie_id" value="{{ film.imdb_id }}">
 
             <label>Votre note :</label>

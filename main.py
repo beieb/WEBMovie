@@ -1,6 +1,6 @@
 import ast
 import os
-from flask import Flask, json, redirect, render_template, session, request
+from flask import Flask, json, redirect, render_template, session, request, jsonify
 from pymongo import MongoClient
 from tmdbv3api import TMDb, Movie
 from neo4j import GraphDatabase
@@ -192,8 +192,13 @@ def neo4j_user():
 
 @app.route("/rate_movie", methods=["POST"])
 def rate_movie():
-    if not session.get("logged") or not "user_id" in session:
-        return redirect("/login")
+
+    # Error if we return directly login page -> delegate to JavaScript
+    if not session.get("logged") or "user_id" not in session:
+        return jsonify({
+            "success": False,
+            "error": "unauthorized"
+        }), 401
 
     user_id = session.get("user_id")
     imdb_id = request.form.get("movie_id")
@@ -211,10 +216,9 @@ def rate_movie():
     if result is None:
         print("Error 500 - Add Rating in Neo4j Database")
         print(f"\tuser_id: {user_id}\tmovie_imdb_id: {imdb_id}\trating: {rating}")
-        return {"error": "Neo4j query failed"}, 500
+        return jsonify({"success": False, "error": "Neo4j query failed"}), 500
     else:
-        # TODO: Change to prevent page change after rating
-        return {"status": "success"}, 200
+        return jsonify({"success": True}), 200
 
 @app.route("/movie/<imdb_id>")
 def movie_details(imdb_id):

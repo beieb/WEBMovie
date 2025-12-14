@@ -21,7 +21,7 @@
                     {{ genre }}{% if not loop.last %}, {% endif %}
                 {% endfor %}
             </p>
-            <form method="POST" action="/rate_movie" class="overlay-form" onsubmit="event.stopPropagation()">
+            <form class="overlay-form rating-form">
                 <input type="hidden" name="movie_id" value="{{ film.imdb_id }}">
 
                 <label>Votre note :</label>
