@@ -10,7 +10,9 @@
     </a>
     <div class="film-overlay" onclick="event.stopPropagation()">
         <h3>{{ film.title }}</h3>
-        <p>Note : {{ film.vote_average }}/10</p>
+        {% if not hide_vote_average|default(false) %}
+            <p>Note : {{ film.vote_average }}/10</p>
+        {% endif %}
 
         <form class="overlay-form rating-form">
             <input type="hidden" name="movie_id" value="{{ film.imdb_id }}">

@@ -1,6 +1,6 @@
 import ast
 import os
-from flask import Flask, json, redirect, render_template, session, request, jsonify
+from flask import Flask, json, redirect, render_template, session, request, jsonify, flash, url_for
 from pymongo import MongoClient
 from tmdbv3api import TMDb, Movie
 from neo4j import GraphDatabase
@@ -127,7 +127,7 @@ def main():
 def login():
     if request.method == "POST":
         pseudo = request.form.get("pseudo")
-        # password = request.form.get("password")
+        password = request.form.get("password")
         query = """
             MATCH (u:USER {pseudo: $pseudo})
             RETURN u.pseudo AS pseudo, u.password AS password, u.user_id AS user_id
@@ -136,6 +136,11 @@ def login():
         result = conn.query(query, {"pseudo": pseudo})
         if not result:
             return "Pseudo inconnu", 401
+        
+        result = conn.query(query, {"pseudo": pseudo})
+        if not result or result[0]["password"] != password:
+            flash("Pseudo ou mot de passe incorrect", "error")
+            return redirect(url_for("login"))
 
         user = result[0]
 
@@ -178,7 +183,8 @@ def register():
         existing = conn.query(check_query, {"pseudo": pseudo})
 
         if existing:
-            return "Ce pseudo est déjà utilisé", 400
+            flash("Pseudo déja existant", "error")
+            return redirect(url_for("register"))
 
         user_id = str(uuid.uuid4())     # UUID v4 = 122 bits of random -> 5.3e+36 combinations
 
@@ -416,6 +422,44 @@ def search():
                             endpoint="search",
                             search_name= name)
   
+@app.route("/profile")
+def profile():
+    if not session.get("logged") or "user_id" not in session:
+        return redirect("/login")
+
+    user_id = session["user_id"]
+
+    # Récupération des films notés par l'utilisateur
+    with open("cypher_queries/get_ratings_by_user.cypher", "r", encoding="utf-8") as f:
+        cypher_query = f.read()
+
+    rated_movies = conn.query(cypher_query, params={"user_id": user_id}) or []
+
+    # Récupération des posters TMDB
+    for movie in rated_movies:
+        imdb_id = movie.get("imdb_id")
+        if not imdb_id:
+            continue
+
+        url = (
+            f"https://api.themoviedb.org/3/find/{imdb_id}"
+            f"?api_key={tmdb.api_key}&external_source=imdb_id"
+        )
+        response = requests.get(url)
+        if response.status_code != 200:
+            continue
+
+        data = response.json()
+        if data.get("movie_results") and data["movie_results"][0].get("poster_path"):
+            poster_path = data["movie_results"][0]["poster_path"]
+            movie["full_poster_url"] = f"https://image.tmdb.org/t/p/w500{poster_path}"
+
+    return render_template(
+        "profile.html",
+        rated_movies=rated_movies,
+        pseudo=session.get("pseudo")
+    )
+
 
 
 
