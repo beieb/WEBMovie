@@ -21,13 +21,12 @@
             <span class="nav-user">Hello, {{ session.get('pseudo') }}</span>
             <button onclick="location.href='/profile'">Profil</button>
             <button onclick="location.href='/preferences'">Preferences</button>
+            <button onclick="location.href='/suggestions'">Recommendations</button>
             <button onclick="location.href='/logout'">Logout</button>
         {% else %}
             <button onclick="location.href='/login'">Sign In</button>
             <button onclick="location.href='/register'">Sign Up</button>
         {% endif %}
-
-        <button onclick="location.href='/suggestions'">Suggestions</button>
 
     </div>
 </div>
