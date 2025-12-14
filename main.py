@@ -147,6 +147,13 @@ def login():
         session["pseudo"] = user["pseudo"]
         session["user_id"] = user["user_id"]
 
+        # Retrieving user's favorite genres
+        with open("cypher_queries/get_genres_by_user.cypher", "r", encoding="utf-8") as f:
+            cypher_query = f.read()
+        genres = conn.query(cypher_query, params={"user_id": user["user_id"]}) or []
+        genres_list = list({g["genre"] for g in genres})
+        session["genres"] = genres_list
+
         # Retrieving user's ratings
         with open("cypher_queries/get_ratings_by_user.cypher", "r", encoding="utf-8") as f:
             cypher_query = f.read()
@@ -191,6 +198,7 @@ def register():
         session["pseudo"] = pseudo
         session["user_id"] = user_id
         session["ratings"] = {}
+        session["genres"] = []
 
         return redirect("/")
 
@@ -248,6 +256,48 @@ def rate_movie():
     else:
         session["ratings"][imdb_id] = rating
         return jsonify({"success": True}), 200
+
+movie_genres = [
+    'Action', 'Adventure', 'Animation', 'Comedy', 'Crime', 'Documentary', 'Drama', 'Family', 'Fantasy','Foreign',
+    'History', 'Horror', 'Music', 'Mystery', 'Romance', 'Science Fiction', 'TV Movie', 'Thriller', 'War', 'Western'
+]
+@app.route("/preferences")
+def preferences():
+    if not session.get("logged") or not "user_id" in session:
+        return redirect("/login")
+    return render_template(
+        "preferences.html",
+        all_genres=movie_genres,
+        user_genres=session.get("genres", [])
+    )
+
+@app.route("/update_genres", methods=["POST"])
+def update_genres():
+    if not session.get("logged") or not "user_id" in session:
+        return jsonify(success=False, error="unauthorized"), 401
+
+    data = request.get_json()
+    if "genres" in data:
+        genres = data.get("genres")
+
+        with open("cypher_queries/update_genres_by_user.cypher", "r", encoding="utf-8") as f:
+            cypher_query = f.read()
+
+        user_id = session.get("user_id")
+        result = conn.query(cypher_query, params={
+            "user_id": user_id,
+            "genres": genres
+        })
+
+        if result is None:
+            print(f"Error 500 - Update genre preferences for user {user_id}")
+            return jsonify({"success": False, "error": "Neo4j query failed"}), 500
+        else:
+            session["genres"] = genres
+            return jsonify({"success": True}), 200
+    else:
+        return jsonify({"success": False, "error": "No genres in session"}), 404
+
 
 @app.route("/movie/<imdb_id>")
 def movie_details(imdb_id):
