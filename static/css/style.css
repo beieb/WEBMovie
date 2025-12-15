@@ -1,7 +1,8 @@
 /* ---- GLOBAL ---- */
 body {
     font-family: Arial, sans-serif;
-    background: #fafafa;
+    background: #1d1d1d;
+    color: white;
     padding: 20px;
     margin: 0;
     text-align: center;
@@ -12,7 +13,7 @@ body {
     padding: 10px 20px;
     border: none;
     border-radius: 25px;
-    background: #007BFF;
+    background: #a042bc;
     color: white;
     font-size: 16px;
     cursor: pointer;
@@ -21,14 +22,14 @@ body {
 
 .bouton_connection:hover,
 .bouton_deconnection:hover {
-    background: #0056d4;
+    background: #712e84;
 }
 
 /* ---- TITRES ---- */
 h1 {
     margin-bottom: 30px;
     font-size: 32px;
-    color: #333;
+    color: white;
 }
 
 /* ===== FILMS GRID ===== */
