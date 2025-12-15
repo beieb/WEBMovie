@@ -59,7 +59,7 @@ code {
 {% else %}
     <p>Tu n’as encore noté aucun film.</p>
 {% endif %}
-
+{% include "components/pagination.html" %}
 <div id="import-modal" class="modal hidden">
     <div class="modal-content">
         <h2>Import Ratings from CSV File</h2>
@@ -77,6 +77,8 @@ code {
                 <button type="button" id="close-import-modal">Cancel</button>
             </div>
         </form>
+        
+
     </div>
 </div>
 

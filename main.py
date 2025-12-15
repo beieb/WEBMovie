@@ -14,16 +14,20 @@ import csv
 #    NEO4J CONNECTION CLASS
 # =============================
 class Neo4jConnection:
-    def __init__(self, uri, user, password):
+    def __init__(self, uri, user, password, database):
         self._uri = uri
         self._user = user
         self._password = password
+        self._database = database
         self._driver = None
 
     def connect(self):
         try:
-            self._driver = GraphDatabase.driver(self._uri, auth=(self._user, self._password))
-            with self._driver.session() as session:
+            self._driver = GraphDatabase.driver(
+                self._uri,
+                auth=(self._user, self._password)
+            )
+            with self._driver.session(database=self._database) as session:
                 result = session.run("RETURN 'Neo4j connection successful' AS message")
                 print(result.single()["message"])
         except Exception as e:
@@ -37,12 +41,13 @@ class Neo4jConnection:
         if params is None:
             params = {}
         try:
-            with self._driver.session() as session:
+            with self._driver.session(database=self._database) as session:
                 result = session.run(cypher, params)
                 return [record.data() for record in result]
         except Exception as e:
             print("❌ Neo4j query error:", e)
             return None
+
 
 # =============================
 #       CONFIGURATION
@@ -56,7 +61,7 @@ app.secret_key = os.environ.get("FLASK_SECRET_KEY", "0123456789")
 NEO4J_URI = os.environ["NEO4J_URI"]
 NEO4J_USER = os.environ["NEO4J_USER"]
 NEO4J_PASSWORD = os.environ["NEO4J_PASSWORD"]
-conn = Neo4jConnection(NEO4J_URI, NEO4J_USER, NEO4J_PASSWORD)
+conn = Neo4jConnection(NEO4J_URI, NEO4J_USER, NEO4J_PASSWORD, database="movies-users-ratings-2025-11-24t14-54-18")
 conn.connect()
 
 # MongoDB
@@ -430,12 +435,29 @@ def profile():
         return redirect("/login")
 
     user_id = session["user_id"]
+    page = int(request.args.get("page", 1))
+    per_page = 10
+
+    skip = (page - 1) * per_page
+    limit = per_page
+
 
     # Récupération des films notés par l'utilisateur
     with open("cypher_queries/get_ratings_by_user.cypher", "r", encoding="utf-8") as f:
         cypher_query = f.read()
 
-    rated_movies = conn.query(cypher_query, params={"user_id": user_id}) or []
+    rated_movies = conn.query(cypher_query, params={"user_id": user_id,"skip": skip, "limit": limit}) or []
+    count_query = """
+    MATCH (n:USER {user_id: $user_id})-[r:RATING]->(m:MOVIE)
+    RETURN count(m) AS total
+    """
+
+    total_movies = conn.query(
+        count_query,
+        params={"user_id": user_id}
+    )[0]["total"]
+
+    total_pages = math.ceil(total_movies / per_page)
 
     # Récupération des posters TMDB
     for movie in rated_movies:
@@ -459,7 +481,12 @@ def profile():
     return render_template(
         "profile.html",
         rated_movies=rated_movies,
-        pseudo=session.get("pseudo")
+        pseudo=session.get("pseudo"),
+        total_pages=total_pages,
+        page = page,
+        endpoint="profile",
+        search_name= None
+
     )
 
 @app.route("/import_ratings_csv", methods=["POST"])

@@ -17,46 +17,7 @@
                 {% include 'components/movie_item.html' %}
             {% endfor %}
         </div>
-        <div class="pagination">
-
-            {% if page > 1 %}
-                <a href="{{ url_for(endpoint, page=page-1, name=search_name) }}">«</a>
-            {% endif %}
-
-            <a href="{{ url_for(endpoint, page=1, name=search_name) }}"
-            class="{% if page == 1 %}active{% endif %}">
-                1
-            </a>
-
-            {% if page > 3 %}
-                <span class="dots">...</span>
-            {% endif %}
-
-            {% for p in range(page-1, page+2) %}
-                {% if p > 1 and p < total_pages %}
-                    <a href="{{ url_for(endpoint, page=p, name=search_name) }}"
-                    class="{% if p == page %}active{% endif %}">
-                        {{ p }}
-                    </a>
-                {% endif %}
-            {% endfor %}
-
-            {% if page < total_pages - 2 %}
-                <span class="dots">...</span>
-            {% endif %}
-
-            {% if total_pages > 1 %}
-                <a href="{{ url_for(endpoint, page=total_pages, name=search_name) }}"
-                class="{% if page == total_pages %}active{% endif %}">
-                    {{ total_pages }}
-                </a>
-            {% endif %}
-
-            {% if page < total_pages %}
-                <a href="{{ url_for(endpoint, page=page+1, name=search_name) }}">»</a>
-            {% endif %}
-
-        </div>
+        {% include "components/pagination.html" %}
 
 
 
