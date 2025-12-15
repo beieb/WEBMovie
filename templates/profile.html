@@ -60,6 +60,10 @@ code {
 {% else %}
     <p>Tu n’as encore noté aucun film.</p>
 {% endif %}
+{% block pagination %}
+    {% include "components/pagination.html" %}
+{% endblock %}
+
 
 <div id="import-modal" class="modal hidden">
     <div class="modal-content">
