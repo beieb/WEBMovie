@@ -432,10 +432,29 @@ def profile():
     user_id = session["user_id"]
 
     # Récupération des films notés par l'utilisateur
-    with open("cypher_queries/get_ratings_by_user.cypher", "r", encoding="utf-8") as f:
+    with open("cypher_queries/get_ratings_by_user_pag.cypher", "r", encoding="utf-8") as f:
         cypher_query = f.read()
 
-    rated_movies = conn.query(cypher_query, params={"user_id": user_id}) or []
+    page = int(request.args.get("page", 1))
+    per_page = 10
+
+    skip = (page - 1) * per_page
+    limit = per_page
+
+    count_query = """
+    MATCH (n:USER {user_id: $user_id})-[r:RATING]->(m:MOVIE)
+    RETURN count(m) AS total
+    """
+
+    total_movies = conn.query(
+        count_query,
+        params={"user_id": user_id}
+    )[0]["total"]
+
+
+    total_pages = math.ceil(total_movies / per_page)
+
+    rated_movies = conn.query(cypher_query, params={"user_id": user_id, "limit": limit, "skip": skip}) or []
 
     # Récupération des posters TMDB
     for movie in rated_movies:
@@ -459,7 +478,11 @@ def profile():
     return render_template(
         "profile.html",
         rated_movies=rated_movies,
-        pseudo=session.get("pseudo")
+        pseudo=session.get("pseudo"),
+        page=page,
+        total_pages=total_pages,
+        endpoint = "profile",
+        search_name=None
     )
 
 @app.route("/import_ratings_csv", methods=["POST"])
