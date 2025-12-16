@@ -22,7 +22,7 @@ class Neo4jConnection:
 
     def connect(self):
         try:
-            self._driver = GraphDatabase.driver(self._uri, auth=(self._user, self._password))
+            self._driver = GraphDatabase.driver(self._uri, auth=(self._user, self._password), database=NEO4J_DBNAME)
             with self._driver.session() as session:
                 result = session.run("RETURN 'Neo4j connection successful' AS message")
                 print(result.single()["message"])
@@ -56,6 +56,7 @@ app.secret_key = os.environ.get("FLASK_SECRET_KEY", "0123456789")
 NEO4J_URI = os.environ["NEO4J_URI"]
 NEO4J_USER = os.environ["NEO4J_USER"]
 NEO4J_PASSWORD = os.environ["NEO4J_PASSWORD"]
+NEO4J_DBNAME = os.environ["NEO4J_DBNAME"]
 conn = Neo4jConnection(NEO4J_URI, NEO4J_USER, NEO4J_PASSWORD)
 conn.connect()
 
