@@ -19,12 +19,12 @@ MATCH (other)-[r:RATING]->(suggestion:MOVIE)
 WHERE NOT (client)-[:RATING]->(suggestion)
 
 // Récupère les genres des films s'il y en a
-OPTIONAL MATCH (suggestion)-[:TYPE]->(g_movie:Genre)
+OPTIONAL MATCH (suggestion)-[:TYPE]->(g_movie:GENRE)
 WITH client, other, suggestion, r, similarity,
      collect(DISTINCT g_movie.name) AS movieGenres
 
 // Récupère les genres appréciés par le client s'il en a
-OPTIONAL MATCH (client)-[:PREFERENCE]->(g_client:Genre)
+OPTIONAL MATCH (client)-[:PREFERENCE]->(g_client:GENRE)
 WITH suggestion, r, similarity, movieGenres,
      collect(DISTINCT g_client.name) AS userGenres
 
