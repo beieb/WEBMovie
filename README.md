@@ -37,7 +37,7 @@ Dans le répertoire principal du dépôt, exécuter :
 ```sh
 docker compose up --build
 ```
-Après construction et , l'application web est normalement disponible sur http://localhost:5000/ ou http://127.0.0.1:5000.
+Après construction et démarrage du conteneur, l'application web est normalement disponible sur http://localhost:5000/ ou http://127.0.0.1:5000.
 
 Pour arrêter :
 ```sh
