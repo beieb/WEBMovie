@@ -5,26 +5,28 @@ services:
     ports:
       - "5000:5000"
     env_file:
-      - .env.local
+      - .env
     depends_on:
       - mongo
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
-  neo4j:
-    image: neo4j:5
-    container_name: neo4j
-    ports:
-      - "7474:7474"
-      - "7687:7687"
-    environment:
-      NEO4J_AUTH: neo4j/neo4j_password
-      NEO4J_dbms_connector_bolt_advertised__address: localhost:7687
-      NEO4J_PLUGINS: '["graph-data-science"]'
-      NEO4J_dbms_security_procedures_unrestricted: gds.*
-      NEO4J_dbms_security_procedures_allowlist: gds.*
-    volumes:
-      - neo4j_data:/data
+# L'installation de Neo4j fonctionne, la récupération du dump également mais la base est inaccessible
+# Problème rencontré : Erreur de connexion à Neo4j : {neo4j_code: Neo.ClientError.Security.Unauthorized} {message: The client is unauthorized due to authentication failure.} {gql_status: 42NFF} {gql_status_description: error: syntax error or access rule violation - permission/access denied. Access denied, see the security logs for details.}
+#  neo4j:
+#    image: neo4j:5
+#    container_name: neo4j
+#    ports:
+#      - "7474:7474"
+#      - "7687:7687"
+#    environment:
+#      NEO4J_AUTH: neo4j/neo4j_password
+#      NEO4J_dbms_connector_bolt_advertised__address: localhost:7687
+#      NEO4J_PLUGINS: '["graph-data-science"]'
+#      NEO4J_dbms_security_procedures_unrestricted: gds.*
+#      NEO4J_dbms_security_procedures_allowlist: gds.*
+#    volumes:
+#      - neo4j_data:/data
 
   mongo:
     image: mongo:7
