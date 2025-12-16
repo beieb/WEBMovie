@@ -1,5 +1,7 @@
 import ast
 import os
+import time
+from neo4j.exceptions import ServiceUnavailable
 from flask import Flask, json, redirect, render_template, session, request, jsonify, flash, url_for
 from pymongo import MongoClient
 from tmdbv3api import TMDb, Movie
@@ -43,6 +45,18 @@ class Neo4jConnection:
         except Exception as e:
             print("❌ Neo4j query error:", e)
             return None
+        
+def get_neo4j_driver_with_retry(uri, user, password, retries=10, delay=5):
+    for i in range(retries):
+        try:
+            driver = GraphDatabase.driver(uri, auth=(user, password))
+            driver.verify_connectivity()
+            print("✅ Connected to Neo4j")
+            return driver
+        except ServiceUnavailable:
+            print(f"⏳ Neo4j not ready, retry {i+1}/{retries}")
+            time.sleep(delay)
+    raise Exception("❌ Neo4j not available after retries")
 
 # =============================
 #       CONFIGURATION
@@ -56,7 +70,14 @@ app.secret_key = os.environ.get("FLASK_SECRET_KEY", "0123456789")
 NEO4J_URI = os.environ["NEO4J_URI"]
 NEO4J_USER = os.environ["NEO4J_USER"]
 NEO4J_PASSWORD = os.environ["NEO4J_PASSWORD"]
-NEO4J_DBNAME = os.environ["NEO4J_DBNAME"]
+NEO4J_DBNAME = os.environ.get("NEO4J_DBNAME", "neo4j")
+
+driver = get_neo4j_driver_with_retry(
+    uri=NEO4J_URI,
+    user=NEO4J_USER,
+    password=NEO4J_PASSWORD
+)
+
 conn = Neo4jConnection(NEO4J_URI, NEO4J_USER, NEO4J_PASSWORD)
 conn.connect()
 
@@ -134,10 +155,6 @@ def login():
             MATCH (u:USER {pseudo: $pseudo})
             RETURN u.pseudo AS pseudo, u.password AS password, u.user_id AS user_id
         """
-
-        result = conn.query(query, {"pseudo": pseudo})
-        if not result:
-            return "Pseudo inconnu", 401
         
         result = conn.query(query, {"pseudo": pseudo})
         if not result or result[0]["password"] != password:
